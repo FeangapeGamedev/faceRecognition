@@ -1,0 +1,19 @@
+.logo-tilt {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  background: linear-gradient(135deg, #fbbf24 0%, #f472b6 60%, #7c3aed 100%);
+  /* Gold to pink to violet for strong contrast and a futuristic pop */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
