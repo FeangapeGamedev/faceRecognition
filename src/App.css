@@ -1,9 +1,11 @@
 .App {
   min-height: 100vh;
   text-align: center;
+  position: relative;
+  z-index: 1; /* 👈 ensures content sits above background particles */
 }
 
-.center{
+.center {
   display: flex;
   justify-content: center;
 }
