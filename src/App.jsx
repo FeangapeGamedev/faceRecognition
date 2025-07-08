@@ -1,33 +1,75 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useState } from 'react'
+import Particles, { initParticlesEngine } from '@tsparticles/react'
+import { loadSlim } from '@tsparticles/slim'
+
+import Navigation from './components/Navigation/Navigation'
+import Logo from './components/Logo/Logo'
+import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm'
+import Rank from './components/Rank/Rank'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [engineReady, setEngineReady] = useState(false)
+
+  useEffect(() => {
+    initParticlesEngine(async (engine) => {
+      await loadSlim(engine)
+    }).then(() => {
+      setEngineReady(true)
+    })
+  }, [])
+
+  const particleOptions = {
+  fullScreen: { enable: true },
+  particles: {
+    number: { value: 250 },
+    color: { value: "#ffffff" },
+    shape: { type: "circle" },
+    size: { value: { min: 1, max: 5 } },
+    opacity: { value: 0.5 },
+    links: {
+      enable: true,
+      distance: 150,
+      color: "#ffffff",
+      opacity: 0.6,
+      width: 1,
+    },
+    move: {
+      enable: true,
+      speed: 2,
+      direction: "none",
+      outModes: { default: "bounce" },
+    },
+  },
+  interactivity: {
+    events: {
+      onHover: { enable: true, mode: "repulse" },
+      onClick: { enable: true, mode: "push" },
+    },
+    modes: {
+      repulse: { distance: 100 },
+      push: { quantity: 4 },
+    },
+  },
+  detectRetina: true,
+};
+
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      {engineReady && (
+        <Particles
+          id="tsparticles"
+          options={particleOptions}
+        />
+      )}
+      <div className="App">
+        <Navigation />
+        <Logo />
+        <Rank />
+        <ImageLinkForm />
+        {/* <FaceRecognition /> */}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
