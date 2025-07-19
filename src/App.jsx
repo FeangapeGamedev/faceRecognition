@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import Particles, { initParticlesEngine } from '@tsparticles/react';
+import { useState } from 'react';
+import Particles from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
+import { tsParticles } from "@tsparticles/engine";
 import Navigation from './components/Navigation/Navigation';
 import Logo from './components/Logo/Logo';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
@@ -10,8 +11,10 @@ import Signin from './components/Signin/Signin';
 import Register from './components/Register/Register';
 import './App.css';
 
+// Manually initialize engine once, outside React lifecycle
+loadSlim(tsParticles);
+
 const App = () => {
-  const [engineReady, setEngineReady] = useState(false);
   const [input, setInput] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [box, setBox] = useState({});
@@ -24,12 +27,6 @@ const App = () => {
     entries: 0,
     joined: ''
   });
-
-  useEffect(() => {
-    initParticlesEngine(async engine => {
-      await loadSlim(engine);
-    }).then(() => setEngineReady(true));
-  }, []);
 
   const loadUser = (data) => {
     setUser({
@@ -46,60 +43,43 @@ const App = () => {
   };
 
   const calculateFaceLocation = (data) => {
-    const boundingBox = data.outputs[0].data.regions[0].region_info.bounding_box;
-    const image = document.getElementById('inputimage');
-    const width = Number(image.width);
-    const height = Number(image.height);
+  const boundingBox = data.outputs?.[0]?.data?.regions?.[0]?.region_info?.bounding_box;
+  const image = document.getElementById('inputimage');
 
-    return {
-      leftCol: boundingBox.left_col * width,
-      topRow: boundingBox.top_row * height,
-      rightCol: width - (boundingBox.right_col * width),
-      bottomRow: height - (boundingBox.bottom_row * height)
-    };
+  if (!image) {
+    console.warn('⚠️ Image not loaded yet');
+    return {};
+  }
+
+  const width = Number(image.width);
+  const height = Number(image.height);
+
+  if (!boundingBox || !width || !height) {
+    console.warn('⚠️ Missing bounding box or image dimensions', boundingBox);
+    return {};
+  }
+
+  return {
+    leftCol: boundingBox.left_col * width,
+    topRow: boundingBox.top_row * height,
+    rightCol: width - (boundingBox.right_col * width),
+    bottomRow: height - (boundingBox.bottom_row * height)
   };
+};
 
-  const displayFaceBox = (box) => {
-    setBox(box);
-  };
-
-  const returnClarifaiJSONRequest = (imageUrl) => {
-    const PAT = 'bfffc4577d2a42d995a3c855a8c1c05d';
-    const USER_ID = 'feangape';
-    const APP_ID = 'FaceRecognition';
-
-    const raw = JSON.stringify({
-      user_app_id: {
-        user_id: USER_ID,
-        app_id: APP_ID
-      },
-      inputs: [
-        {
-          data: {
-            image: {
-              url: imageUrl
-            }
-          }
-        }
-      ]
-    });
-
-    return {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Key ' + PAT
-      },
-      body: raw
-    };
-  };
+  const displayFaceBox = (box) => setBox(box);
 
   const onButtonSubmit = () => {
     setImageUrl(input);
-    fetch('https://api.clarifai.com/v2/models/face-detection/outputs', returnClarifaiJSONRequest(input))
-      .then(response => response.json())
+
+    fetch('http://localhost:3000/clarifai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageUrl: input })
+    })
+      .then(res => res.json())
       .then(result => {
-        if (result && result.outputs) {
+        if (result.outputs) {
           fetch('http://localhost:3000/image', {
             method: 'put',
             headers: { 'Content-Type': 'application/json' },
@@ -112,9 +92,11 @@ const App = () => {
 
           const faceBox = calculateFaceLocation(result);
           displayFaceBox(faceBox);
+        } else {
+          console.warn('No face detected:', result);
         }
       })
-      .catch(error => console.log('Clarifai error:', error));
+      .catch(err => console.error('Clarifai error:', err));
   };
 
   const onRouteChange = (route) => {
@@ -164,7 +146,7 @@ const App = () => {
 
   return (
     <>
-      {engineReady && <Particles id="tsparticles" options={particleOptions} />}
+      <Particles id="tsparticles" options={particleOptions} />
       <div className="App">
         <Navigation isSignedIn={isSignedIn} onRouteChange={onRouteChange} />
         {route === 'home' ? (
@@ -174,12 +156,10 @@ const App = () => {
             <ImageLinkForm onInputChange={onInputChange} onButtonSubmit={onButtonSubmit} />
             <FaceRecognition imageUrl={imageUrl} box={box} />
           </>
+        ) : route === 'signin' ? (
+          <Signin loadUser={loadUser} onRouteChange={onRouteChange} />
         ) : (
-          route === 'signin' ? (
-            <Signin loadUser={loadUser} onRouteChange={onRouteChange} />
-          ) : (
-            <Register loadUser={loadUser} onRouteChange={onRouteChange} />
-          )
+          <Register loadUser={loadUser} onRouteChange={onRouteChange} />
         )}
       </div>
     </>
