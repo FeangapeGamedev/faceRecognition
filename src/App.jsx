@@ -43,61 +43,69 @@ const App = () => {
   };
 
   const calculateFaceLocation = (data) => {
-  const boundingBox = data.outputs?.[0]?.data?.regions?.[0]?.region_info?.bounding_box;
-  const image = document.getElementById('inputimage');
+    const boundingBox = data.outputs?.[0]?.data?.regions?.[0]?.region_info?.bounding_box;
+    const image = document.getElementById('inputimage');
 
-  if (!image) {
-    console.warn('⚠️ Image not loaded yet');
-    return {};
-  }
+    if (!image) {
+      console.warn('⚠️ Image not loaded yet');
+      return {};
+    }
 
-  const width = Number(image.width);
-  const height = Number(image.height);
+    const width = Number(image.width);
+    const height = Number(image.height);
 
-  if (!boundingBox || !width || !height) {
-    console.warn('⚠️ Missing bounding box or image dimensions', boundingBox);
-    return {};
-  }
+    if (!boundingBox || !width || !height) {
+      console.warn('⚠️ Missing bounding box or image dimensions', boundingBox);
+      return {};
+    }
 
-  return {
-    leftCol: boundingBox.left_col * width,
-    topRow: boundingBox.top_row * height,
-    rightCol: width - (boundingBox.right_col * width),
-    bottomRow: height - (boundingBox.bottom_row * height)
+    return {
+      leftCol: boundingBox.left_col * width,
+      topRow: boundingBox.top_row * height,
+      rightCol: width - (boundingBox.right_col * width),
+      bottomRow: height - (boundingBox.bottom_row * height)
+    };
   };
-};
 
   const displayFaceBox = (box) => setBox(box);
 
-  const onButtonSubmit = () => {
-    setImageUrl(input);
+ const onButtonSubmit = () => {
+  if (!input.trim() || input === imageUrl) {
+    console.warn('No new image submitted or input is empty.');
+    return;
+  }
 
-    fetch('http://localhost:3000/clarifai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageUrl: input })
+  setImageUrl(input);
+
+  fetch('http://localhost:3000/clarifai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageUrl: input })
+  })
+    .then(res => res.json())
+    .then(result => {
+      const regions = result?.outputs?.[0]?.data?.regions;
+
+      if (regions && regions.length > 0) {
+        const faceBox = calculateFaceLocation(result);
+        displayFaceBox(faceBox);
+
+        fetch('http://localhost:3000/image', {
+          method: 'put',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: user.id })
+        })
+          .then(res => res.json())
+          .then(count => {
+            setUser(prev => ({ ...prev, entries: count }));
+          });
+      } else {
+        console.warn('No face detected in the image.');
+        setBox({}); // Clear the previous box
+      }
     })
-      .then(res => res.json())
-      .then(result => {
-        if (result.outputs) {
-          fetch('http://localhost:3000/image', {
-            method: 'put',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: user.id })
-          })
-            .then(res => res.json())
-            .then(count => {
-              setUser(prev => ({ ...prev, entries: count }));
-            });
-
-          const faceBox = calculateFaceLocation(result);
-          displayFaceBox(faceBox);
-        } else {
-          console.warn('No face detected:', result);
-        }
-      })
-      .catch(err => console.error('Clarifai error:', err));
-  };
+    .catch(err => console.error('Clarifai error:', err));
+};
 
   const onRouteChange = (route) => {
     if (route === 'signout') {
