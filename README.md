@@ -1,12 +1,129 @@
-# React + Vite
+Face Detection Web App
+This is a full-stack face detection application that uses the Clarifai API to identify faces in images. The frontend is built using React and hosted separately from the backend, which is deployed on Render.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The project was developed as a hands-on learning experience to cover key areas of full-stack development, including frontend, backend, and database integration.
 
-Currently, two official plugins are available:
+Overview
+Users can input image URLs to detect faces.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Detected faces are highlighted using bounding boxes.
 
-## Expanding the ESLint configuration
+Includes user authentication and entry tracking.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Backend securely communicates with the Clarifai API.
+
+User data and image submission count are stored in a PostgreSQL database.
+
+Technologies Used
+Frontend
+React
+
+JavaScript (ES6+)
+
+CSS3
+
+HTML5
+
+Backend
+Node.js
+
+Express
+
+Clarifai API (used via backend proxy)
+
+PostgreSQL
+
+Hosting
+Frontend: [your hosting platform]
+
+Backend: Render
+
+Features
+Face detection via Clarifai API
+
+Image URL input
+
+Sign-in and registration forms
+
+Entry counter saved to database
+
+Responsive UI built with clean CSS
+
+Getting Started
+Prerequisites
+Node.js and npm
+
+PostgreSQL installed and running
+
+Clarifai API key
+
+Frontend Setup
+Clone the frontend repository:
+
+bash
+Copy
+Edit
+git clone https://github.com/your-username/face-detection-frontend.git
+Navigate into the project folder:
+
+bash
+Copy
+Edit
+cd face-detection-frontend
+Install dependencies and start the app:
+
+sql
+Copy
+Edit
+npm install
+npm start
+Backend Setup
+Clone the backend repository:
+
+bash
+Copy
+Edit
+git clone https://github.com/your-username/face-detection-backend.git
+Navigate into the project folder:
+
+bash
+Copy
+Edit
+cd face-detection-backend
+Create a .env file and include:
+
+ini
+Copy
+Edit
+CLARIFAI_API_KEY=your_api_key_here
+DATABASE_URL=your_postgresql_connection_string
+Install dependencies and start the server:
+
+sql
+Copy
+Edit
+npm install
+npm start
+Project Structure
+css
+Copy
+Edit
+face-detection-app/
+├── frontend/
+│   └── src/
+├── backend/
+│   ├── controllers/
+│   └── routes/
+Purpose
+This project was built to demonstrate and practice full-stack development by integrating:
+
+Frontend UI design and interactivity with React
+
+Backend logic and API handling with Node.js and Express
+
+Data persistence using PostgreSQL
+
+Deployment and environment configuration
+
+License
+This project is licensed under the MIT License.
